@@ -5,8 +5,8 @@ on:
     branches: [main]
   workflow_call:
     inputs:
-      ref:
-        description: "Commit to test (the update workflow passes the commit it just pushed)"
+      artifact:
+        description: "Name of an artifact holding a candidate corntchap-cli.rb to test in place of the committed one (the update workflow's, before it pushes)"
         required: false
         type: string
         default: ""
@@ -16,9 +16,7 @@ jobs:
   scripts:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-        with:
-          ref: ${{ inputs.ref }}
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - name: shellcheck
         run: shellcheck scripts/*.sh && shellcheck -e SC2319 tests/*.sh
       - name: render-formula.sh guards
@@ -28,11 +26,17 @@ jobs:
   style:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - if: inputs.artifact != ''
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
-          ref: ${{ inputs.ref }}
+          name: ${{ inputs.artifact }}
+          path: candidate
+      - if: inputs.artifact != ''
+        shell: bash
+        run: cp "candidate/corntchap-cli.rb" Formula/corntchap-cli.rb
       - run: echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
-      - name: brew style
+      - name: brew style (tap-shaped path)
         run: |
           brew tap-new --no-git local/ci
           cp Formula/corntchap-cli.rb "$(brew --repository local/ci)/Formula/"
@@ -42,22 +46,35 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-14, macos-15-intel, ubuntu-latest, ubuntu-24.04-arm] # arm64 + x86_64 macOS, x86_64 + aarch64 Linux
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - if: inputs.artifact != ''
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
-          ref: ${{ inputs.ref }}
+          name: ${{ inputs.artifact }}
+          path: candidate
+      - if: inputs.artifact != ''
+        shell: bash
+        run: cp "candidate/corntchap-cli.rb" Formula/corntchap-cli.rb
       - name: is there a release to install?
         id: gate
         run: |
-          # the committed formula carries placeholders until the update workflow has seen a release
+          # the committed formula carries all-zero placeholder hashes until the update workflow has seen a release
           if grep -qE 'sha256 "0{64}"' Formula/corntchap-cli.rb; then
             echo "No release rendered yet (all-zero placeholder hashes); skipping the install test."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
-      - if: steps.gate.outputs.skip != 'true' && runner.os == 'Linux'
-        run: echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
+      - name: Homebrew on Linux
+        if: steps.gate.outputs.skip != 'true' && runner.os == 'Linux'
+        run: |
+          if [ ! -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
+            # not preinstalled on every runner image (e.g. arm64): the official installer, pinned to a commit
+            curl -fsSL https://raw.githubusercontent.com/Homebrew/install/c9c975046f78e6e6d662deb801bd461ebd6a54ed/install.sh -o /tmp/brew-install.sh
+            NONINTERACTIVE=1 bash /tmp/brew-install.sh
+          fi
+          echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
       # brew installs only from taps, not from a path
       - name: tap the formula
         if: steps.gate.outputs.skip != 'true'
@@ -75,4 +92,8 @@ jobs:
         run: brew test local/ci/corntchap-cli
       - name: run it
         if: steps.gate.outputs.skip != 'true'
-        run: corntchap-cli --version
+        run: |
+          want=$(grep -oE -m1 'releases/download/v[0-9.]+' Formula/corntchap-cli.rb | sed 's#.*/v##')
+          got=$(corntchap-cli --version)
+          echo "$got"
+          [ "$got" = "corntchap-cli $want" ] || { echo "::error::expected 'corntchap-cli $want'"; exit 1; }
