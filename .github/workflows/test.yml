@@ -1,0 +1,78 @@
+name: test
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_call:
+    inputs:
+      ref:
+        description: "Commit to test (the update workflow passes the commit it just pushed)"
+        required: false
+        type: string
+        default: ""
+permissions:
+  contents: read
+jobs:
+  scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+      - name: shellcheck
+        run: shellcheck scripts/*.sh && shellcheck -e SC2319 tests/*.sh
+      - name: render-formula.sh guards
+        run: tests/render-formula.test.sh
+      - name: every guard is covered (mutation)
+        run: tests/mutate.sh
+  style:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+      - run: echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
+      - name: brew style
+        run: |
+          brew tap-new --no-git local/ci
+          cp Formula/corntchap-cli.rb "$(brew --repository local/ci)/Formula/"
+          brew style local/ci/corntchap-cli
+  install:
+    needs: [scripts, style]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+      - name: is there a release to install?
+        id: gate
+        run: |
+          # the committed formula carries placeholders until the update workflow has seen a release
+          if grep -qE 'sha256 "0{64}"' Formula/corntchap-cli.rb; then
+            echo "No release rendered yet (all-zero placeholder hashes); skipping the install test."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.gate.outputs.skip != 'true' && runner.os == 'Linux'
+        run: echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
+      # brew installs only from taps, not from a path
+      - name: tap the formula
+        if: steps.gate.outputs.skip != 'true'
+        run: |
+          brew tap-new --no-git local/ci
+          cp Formula/corntchap-cli.rb "$(brew --repository local/ci)/Formula/"
+      - name: audit
+        if: steps.gate.outputs.skip != 'true'
+        run: brew audit --strict --formula local/ci/corntchap-cli
+      - name: install
+        if: steps.gate.outputs.skip != 'true'
+        run: brew install local/ci/corntchap-cli
+      - name: brew test
+        if: steps.gate.outputs.skip != 'true'
+        run: brew test local/ci/corntchap-cli
+      - name: run it
+        if: steps.gate.outputs.skip != 'true'
+        run: corntchap-cli --version
