@@ -4,7 +4,7 @@ name: update
 # if the test passed. Nothing reaches the default branch before it has been installed.
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "17 */12 * * *"
   workflow_dispatch:
     inputs:
       tag:

@@ -12,7 +12,7 @@ Windows users: see the [Scoop bucket](https://github.com/cratestack/scoop-bucket
 
 ## How updates work
 
-Nobody edits `Formula/corntchap-cli.rb` by hand. The `update` workflow runs hourly (and on demand: Actions, update, Run workflow, optionally with a tag) on the default branch only, in three jobs:
+Nobody edits `Formula/corntchap-cli.rb` by hand. The `update` workflow runs every 12 hours (and on demand: Actions, update, Run workflow, optionally with a tag — `gh workflow run update.yml --repo cratestack/homebrew-tap -f tag=vX.Y.Z` right after a corntchap release) on the default branch only, in three jobs:
 
 1. **render**: checks that `cratestack/corntchap` exists and is public, asks GitHub for its latest release (no release yet means it exits quietly; an explicit tag that does not exist is an error), downloads the release's four `corntchap-cli-<platform>.tar.gz.sha256` files and runs `scripts/render-formula.sh`;
 2. **test**: installs the rendered formula on real runners (the `test` workflow, macOS arm64 and Intel, Linux x86_64 and aarch64), before anything is pushed;
