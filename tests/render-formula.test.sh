@@ -63,9 +63,11 @@ check "second run is a no-op" $?
 
 # the committed placeholder formula (0.1.0) is replaced by a 0.1.0 release (same version is not a downgrade)
 d=$work/first; mk_release "$d" v0.1.0
-# the placeholder state before any release: the committed formula with every hash zeroed (the committed
-# formula itself carries real hashes once a release has been published)
-f=$work/placeholder.rb; sed -E 's/sha256 "[0-9a-f]{64}"/sha256 "'"$(printf '0%.0s' {1..64})"'"/' "$root/Formula/corntchap-cli.rb" > "$f"
+# the placeholder state before any release, whatever is committed today: the committed formula reset to
+# v0.1.0 with every hash zeroed (once releases are published it carries a newer version and real hashes)
+f=$work/placeholder.rb
+sed -E -e 's/sha256 "[0-9a-f]{64}"/sha256 "'"$(printf '0%.0s' {1..64})"'"/' \
+  -e 's#/releases/download/v[0-9]+\.[0-9]+\.[0-9]+/#/releases/download/v0.1.0/#' "$root/Formula/corntchap-cli.rb" > "$f"
 grep -qE 'sha256 "0{64}"' "$f" && "$RENDER" "$d/release.json" "$d/shas" "$f" > /dev/null 2>&1 && ! grep -qE 'sha256 "0{64}"' "$f"
 check "first release replaces the committed placeholders" $?
 
