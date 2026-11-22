@@ -8,22 +8,22 @@ class CorntchapCli < Formula
   on_macos do
     on_arm do
       url "https://github.com/cratestack/corntchap/releases/download/v0.1.0/corntchap-cli-darwin-arm64.tar.gz"
-      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+      sha256 "325afdd905faaf9cbc529031ee9bb381d9ea18ac611cabe61958e9a4723e8e1b"
     end
     on_intel do
       url "https://github.com/cratestack/corntchap/releases/download/v0.1.0/corntchap-cli-darwin-x86_64.tar.gz"
-      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+      sha256 "aaef07f1a11a2835c726c4a5b557fbe9d7f9ae880ccd46b5cc546123066c28fe"
     end
   end
 
   on_linux do
     on_arm do
       url "https://github.com/cratestack/corntchap/releases/download/v0.1.0/corntchap-cli-linux-aarch64.tar.gz"
-      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+      sha256 "a123d831a7898cff7c914c31d20e87ae3723157dd34dd5f719ab2b174647baa9"
     end
     on_intel do
       url "https://github.com/cratestack/corntchap/releases/download/v0.1.0/corntchap-cli-linux-x86_64.tar.gz"
-      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+      sha256 "40b3869dfbd8c41b1b3e4f8a9c5d01769575bbe7385af028c69410ee5ea0bce6"
     end
   end
 
