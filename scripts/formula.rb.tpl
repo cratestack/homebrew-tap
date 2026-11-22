@@ -30,9 +30,12 @@ class CorntchapCli < Formula
   def install
     # the tarball holds one file, corntchap-cli-<platform>
     bin.install Dir["corntchap-cli-*"].first => "corntchap-cli"
+    # bash, zsh and fish completions from `corntchap-cli completions <shell>` (corntchap >= 0.2.0)
+    generate_completions_from_executable(bin/"corntchap-cli", "completions")
   end
 
   test do
     assert_match version.to_s, shell_output("#{bin}/corntchap-cli --version")
+    assert_match "#compdef corntchap-cli", shell_output("#{bin}/corntchap-cli completions zsh")
   end
 end
