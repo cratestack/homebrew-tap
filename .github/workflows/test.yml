@@ -39,6 +39,9 @@ jobs:
       - name: brew style (tap-shaped path)
         run: |
           brew tap-new --no-git local/ci
+          # Newer Homebrew refuses formulae from untrusted taps ("Refusing to load formula … from untrusted
+          # tap"); this throwaway tap holds only the candidate formula. Older Homebrew has no `trust`.
+          if brew trust --help >/dev/null 2>&1; then brew trust local/ci; fi
           cp Formula/corntchap-cli.rb "$(brew --repository local/ci)/Formula/"
           brew style local/ci/corntchap-cli
   install:
@@ -46,7 +49,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-14, macos-15-intel, ubuntu-latest, ubuntu-24.04-arm] # arm64 + x86_64 macOS, x86_64 + aarch64 Linux
+        os: [macos-15, macos-15-intel, ubuntu-latest, ubuntu-24.04-arm] # arm64 + x86_64 macOS, x86_64 + aarch64 Linux
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -80,6 +83,9 @@ jobs:
         if: steps.gate.outputs.skip != 'true'
         run: |
           brew tap-new --no-git local/ci
+          # Newer Homebrew refuses formulae from untrusted taps ("Refusing to load formula … from untrusted
+          # tap"); this throwaway tap holds only the candidate formula. Older Homebrew has no `trust`.
+          if brew trust --help >/dev/null 2>&1; then brew trust local/ci; fi
           cp Formula/corntchap-cli.rb "$(brew --repository local/ci)/Formula/"
       - name: audit
         if: steps.gate.outputs.skip != 'true'
