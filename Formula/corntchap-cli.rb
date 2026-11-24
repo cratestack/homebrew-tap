@@ -7,23 +7,23 @@ class CorntchapCli < Formula
   # scripts/render-formula.sh rewrites this file from scripts/formula.rb.tpl; do not edit it by hand.
   on_macos do
     on_arm do
-      url "https://github.com/cratestack/corntchap/releases/download/v0.2.0/corntchap-cli-darwin-arm64.tar.gz"
-      sha256 "655ded26dd73bb959abe3dfa37920208c63d3f0659e363091b95568af0611778"
+      url "https://github.com/cratestack/corntchap/releases/download/v0.2.1/corntchap-cli-darwin-arm64.tar.gz"
+      sha256 "03d9a0bcab0af6e925d9431121b726d974b506eb30a549cedf8760ff5cd388b7"
     end
     on_intel do
-      url "https://github.com/cratestack/corntchap/releases/download/v0.2.0/corntchap-cli-darwin-x86_64.tar.gz"
-      sha256 "b50015922a862cd2eec273f6a9e16ad0d83277be85bfeb9f5c8561b16e0a6c5f"
+      url "https://github.com/cratestack/corntchap/releases/download/v0.2.1/corntchap-cli-darwin-x86_64.tar.gz"
+      sha256 "551dbfbf850a16de7b6558ae8ac9d9149af6c34d73496ef673547040b152c5f2"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/cratestack/corntchap/releases/download/v0.2.0/corntchap-cli-linux-aarch64.tar.gz"
-      sha256 "b2dd4a87f4cd318b3ae60a5658a45669798371a533b5399a6eb21160e2441ca0"
+      url "https://github.com/cratestack/corntchap/releases/download/v0.2.1/corntchap-cli-linux-aarch64.tar.gz"
+      sha256 "a7c260d6e2d916bc116fb3052804187399b5e12dc6f74d279af65739f50ef68b"
     end
     on_intel do
-      url "https://github.com/cratestack/corntchap/releases/download/v0.2.0/corntchap-cli-linux-x86_64.tar.gz"
-      sha256 "8efa3b15c91344b7fe062b5967bf79ba5b893758e2ec25e12f4465835bc04980"
+      url "https://github.com/cratestack/corntchap/releases/download/v0.2.1/corntchap-cli-linux-x86_64.tar.gz"
+      sha256 "df11a1c282ea2eade6c5bcd8fa5b8c2a391d129b0bdbb99d07ac42603c87f93f"
     end
   end
 
